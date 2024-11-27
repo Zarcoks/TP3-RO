@@ -174,9 +174,12 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 	
 	//Pour dimensionner le vecteur solution de Enfant
 	//Enfant.Selec.resize(unProb.N, false);
+	Enfant.Selec.resize(unProb.N, false);
 
-	//METHODE BIDON: Recopie l'es genes du'enfant est une copie du Parent1
-	Enfant = Parent1;
+	// Appliquer un masque uniforme pour générer l'enfant
+	for (int i = 0; i < unProb.N; ++i) {
+		Enfant.Selec[i] = (rand() % 2 == 0) ? Parent1.Selec[i] : Parent2.Selec[i];
+	}
 
 	//**NE PAS ENLEVER
 	EvaluerSolution(Enfant, unProb, unAlgo);
