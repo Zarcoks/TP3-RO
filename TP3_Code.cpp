@@ -176,13 +176,21 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 	//Enfant.Selec.resize(unProb.N, false);
 	Enfant.Selec.resize(unProb.N, false);
 
-	// Appliquer un masque uniforme pour générer l'enfant
-	for (int i = 0; i < unProb.N; ++i) {
-		Enfant.Selec[i] = (rand() % 2 == 0) ? Parent1.Selec[i] : Parent2.Selec[i];
-	}
+	// Méthode UNIFORME
+	// Le do while s'assure que la solution est correcte avant évaluation. Permet de ne pas faire planter le programme inutilement...
+	// Note: quand une solution est invalide, on retente juste d'en générer une nouvelle jusqu'à obtenir validité, en générant un nouveau masque à chaque fois.
+	do {
+		// Appliquer un masque uniforme pour générer l'enfant
+		for (int i = 0; i < unProb.N; ++i) {
+			Enfant.Selec[i] = (rand() % 2 == 0) ? Parent1.Selec[i] : Parent2.Selec[i];
+		}
+		//**NE PAS ENLEVER
+		// Met à jour Enfant en définissant une nouvelle valeur à Enfant.Valide et une calcule sa fonction objective
+		EvaluerSolution(Enfant, unProb, unAlgo);
 
-	//**NE PAS ENLEVER
-	EvaluerSolution(Enfant, unProb, unAlgo);
+	} while (!Enfant.Valide);
+
+
 	//AfficherUneSolution(Enfant, unProb);
 	return (Enfant);
 }
@@ -202,6 +210,7 @@ void Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfant
 {
 	//INFOS pour définir votre methode de remplacement...
 	
+	// Méthode ELITISME
 	//**Declaration et dimension dynamique d'une population temporaire pour contenir tous les parents et les enfants
 	std::vector<TSolution> Temporaire;
 
@@ -222,7 +231,7 @@ void Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfant
 
 	//**A LA FIN: Liberation de la population temporaire
 	
-	for (int i = 0; i < Temporaire.size(); i++) {
+	for (int i = 0; i < unAlgo.TaillePop; i++) {
 		Parents[i] = Temporaire[i];
 	}
 	//	Temporaire[i].Seq.clear();
