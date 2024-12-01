@@ -158,6 +158,55 @@ int main(int NbParam, char* Param[])
 	//system("PAUSE");
 	return 0;
 }
+ 
+TSolution Repare(TSolution Enfant, TSolution Parent1, TSolution Parent2) {
+	// Déterminer s'il y a un excès de juries ou un manque:
+	int nbJuries = 0;
+
+	for (int i = 0; i < Enfant.Selec.size(); i++) {
+		// Affichage des juries de l'enfant (debug):
+		// cout << Enfant.Selec[i] << " ";
+		if (Enfant.Selec[i]) nbJuries++;
+	}
+
+	// Cas de manque
+	if (nbJuries < 5) {
+		// On doit ajouter des 1, pour cela, on en ajoute dès qu'un des deux parents a un 1, et où l'enfant a 0
+		int i;
+		while (nbJuries < 5) {
+			i = rand() % Enfant.Selec.size(); // Choix aléatoire du jury des parents
+			if (!Enfant.Selec[i]) { // L'enfant à i vaut 0
+				// La varaible détermine si un des deux parents a un true à l'endroit i
+				bool leParentAUnJuryAuNiveauI = Parent1.Selec[i] || Parent2.Selec[i];
+				if (leParentAUnJuryAuNiveauI) {
+					// Ajoute un true à l'enfant à cet endroit
+					Enfant.Selec[i] = 1;
+					nbJuries++;
+				}
+			}
+			i++;
+		}
+	}
+	// Cas d'excès
+	else if (nbJuries > 5) {
+		// On doit enlever des 1, pour cela, on en enlève dès qu'un des deux parents a un 0, et où l'enfant a un 1
+		int i;
+		while (nbJuries > 5) {
+			i = rand() % Enfant.Selec.size(); // Choix aléatoire du jury des parents
+			if (Enfant.Selec[i]) { // L'enfant à i vaut true
+				// La varaible détermine si un des deux parents a un true à l'endroit i
+				bool unDesDeuxParentsAUnZero = !Parent1.Selec[i] || !Parent2.Selec[i];
+				if (unDesDeuxParentsAUnZero) {
+					// Ajoute un true à l'enfant à cet endroit
+					Enfant.Selec[i] = 0;
+					nbJuries--;
+				}
+			}
+			i++;
+		}
+	}
+	return Enfant;
+}
 
 //***************************************************************************************************************
 //**Fonction qui réalise le CROISEMENT (échange de genes) entre deux parents. Retourne l'enfant produit et evalue.
@@ -177,19 +226,28 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 	Enfant.Selec.resize(unProb.N, false);
 
 	// Méthode UNIFORME
-	// Le do while s'assure que la solution est correcte avant évaluation. Permet de ne pas faire planter le programme inutilement...
-	// Note: quand une solution est invalide, on retente juste d'en générer une nouvelle jusqu'à obtenir validité, en générant un nouveau masque à chaque fois.
-	do {
-		// Appliquer un masque uniforme pour générer l'enfant
-		for (int i = 0; i < unProb.N; ++i) {
-			Enfant.Selec[i] = (rand() % 2 == 0) ? Parent1.Selec[i] : Parent2.Selec[i];
-		}
-		//**NE PAS ENLEVER
-		// Met à jour Enfant en définissant une nouvelle valeur à Enfant.Valide et une calcule sa fonction objective
+	// Appliquer un masque uniforme pour générer l'enfant
+	for (int i = 0; i < unProb.N; ++i) {
+		Enfant.Selec[i] = (rand() % 2 == 0) ? Parent1.Selec[i] : Parent2.Selec[i];
+	}
+	//**NE PAS ENLEVER
+	// Met à jour Enfant en définissant une nouvelle valeur à Enfant.Valide et une calcule sa fonction objective
+	EvaluerSolution(Enfant, unProb, unAlgo);
+
+	// Lorsque la solution est invalide, on la répare en prenant soin de lui ajouter/retirer des juries en fonction de ses parents
+	if (!Enfant.Valide) {
+		Enfant = Repare(Enfant, Parent1, Parent2);
+		// On reévalue la solution pour recalculer ses attributs
 		EvaluerSolution(Enfant, unProb, unAlgo);
-
-	} while (!Enfant.Valide);
-
+		/*
+		// Affichage des résultats de la réparation:
+		cout << "Le selec de l'enfant après réparation vaut: ";
+		for (int i = 0; i < Enfant.Selec.size(); i++) {
+			cout << Enfant.Selec[i] << " ";
+		}
+		cout << "\nLa fonction optimale de l'enfant après réparation vaut: " << Enfant.FctObj << "\n";
+		*/
+	}
 
 	//AfficherUneSolution(Enfant, unProb);
 	return (Enfant);
