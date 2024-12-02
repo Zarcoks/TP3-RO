@@ -159,7 +159,7 @@ int main(int NbParam, char* Param[])
 	return 0;
 }
  
-TSolution Repare(TSolution Enfant, TSolution Parent1, TSolution Parent2) {
+TSolution Repare(TSolution Enfant, TSolution Parent1, TSolution Parent2, int M) {
 	// Déterminer s'il y a un excès de juries ou un manque:
 	int nbJuries = 0;
 
@@ -170,10 +170,10 @@ TSolution Repare(TSolution Enfant, TSolution Parent1, TSolution Parent2) {
 	}
 
 	// Cas de manque
-	if (nbJuries < 5) {
+	if (nbJuries < M) {
 		// On doit ajouter des 1, pour cela, on en ajoute dès qu'un des deux parents a un 1, et où l'enfant a 0
 		int i;
-		while (nbJuries < 5) {
+		while (nbJuries < M) {
 			i = rand() % Enfant.Selec.size(); // Choix aléatoire du jury des parents
 			if (!Enfant.Selec[i]) { // L'enfant à i vaut 0
 				// La varaible détermine si un des deux parents a un true à l'endroit i
@@ -188,10 +188,10 @@ TSolution Repare(TSolution Enfant, TSolution Parent1, TSolution Parent2) {
 		}
 	}
 	// Cas d'excès
-	else if (nbJuries > 5) {
+	else if (nbJuries > M) {
 		// On doit enlever des 1, pour cela, on en enlève dès qu'un des deux parents a un 0, et où l'enfant a un 1
 		int i;
-		while (nbJuries > 5) {
+		while (nbJuries > M) {
 			i = rand() % Enfant.Selec.size(); // Choix aléatoire du jury des parents
 			if (Enfant.Selec[i]) { // L'enfant à i vaut true
 				// La varaible détermine si un des deux parents a un true à l'endroit i
@@ -236,7 +236,7 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 
 	// Lorsque la solution est invalide, on la répare en prenant soin de lui ajouter/retirer des juries en fonction de ses parents
 	if (!Enfant.Valide) {
-		Enfant = Repare(Enfant, Parent1, Parent2);
+		Enfant = Repare(Enfant, Parent1, Parent2, unProb.M);
 		// On reévalue la solution pour recalculer ses attributs
 		EvaluerSolution(Enfant, unProb, unAlgo);
 		/*
